@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import csv
 from Webcam_Event_Conversion.webcam_to_event_Log import PseudoEventCamera
+from Webcam_Event_Conversion.webcam_to_event_NoLog import PseudoEventCameraNL
 
 THRESHOLD_NL = 30
 THRESHOLD = 0.2
@@ -16,7 +17,7 @@ with open(file, "w", newline="") as f:
     #No log, pure subtraction no lookup average time calculator
     for i in range(5):
         cap = cv2.VideoCapture(r'C:\Users\gerar\OneDrive - National University of Ireland, Galway\Pictures\Camera Roll\EventComparisonFile.mp4')
-        camera = PseudoEventCamera(THRESHOLD_NL)
+        camera = PseudoEventCameraNL(THRESHOLD_NL)
 
         start_time = time.perf_counter()
         frame_count = 0
@@ -47,7 +48,7 @@ with open(file, "w", newline="") as f:
             events[on] = (0, 0, 255)
             events[off] = (255, 0, 0)
 
-            writer.writerow(["Subtraction",THRESHOLD_NL, greyscale_frame.shape, frame_count, round(avg_ms, 2), round(avg_step_ms,2), round( (1000 / avg_step_ms),2)])
+        writer.writerow(["Subtraction", THRESHOLD_NL, greyscale_frame.shape, frame_count, round(avg_ms, 2), round(avg_step_ms, 2),round((1000 / avg_step_ms), 2)])
         cap.release()
 
 
@@ -84,8 +85,8 @@ with open(file, "w", newline="") as f:
             events = np.zeros((*greyscale_frame.shape, 3), dtype=np.uint8)
             events[on] = (0, 0, 255)
             events[off] = (255, 0, 0)
+        writer.writerow(["Log Lookup", THRESHOLD, greyscale_frame.shape, frame_count, round(avg_ms, 2), round(avg_step_ms, 2),round((1000 / avg_step_ms), 2)])
 
-            writer.writerow( ["Log Lookup", THRESHOLD_NL, greyscale_frame.shape, frame_count, round(avg_ms, 2), round(avg_step_ms, 2), round((1000 / avg_step_ms), 2)])
         cap.release()
 
 

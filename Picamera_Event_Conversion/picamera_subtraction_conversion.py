@@ -4,7 +4,7 @@ from picamera2 import Picamera2
 import numpy as np
 
 # Event camera code from webcam
-THRESHOLD = 0.2
+THRESHOLD = 5
 SHOW_UNPROCESSED = False
 FRAMERATE = 30
 FRAMEDURATION = 1000000 // FRAMERATE
