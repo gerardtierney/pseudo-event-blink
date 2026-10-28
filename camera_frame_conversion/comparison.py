@@ -2,7 +2,7 @@ import time
 import cv2
 import numpy as np
 import csv
-from camera_frame_conversion.webcam_to_event import PseudoEventCamera
+from Webcam_Event_Conversion.webcam_to_event_Log import PseudoEventCamera
 
 THRESHOLD_NL = 30
 THRESHOLD = 0.2
