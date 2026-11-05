@@ -11,3 +11,5 @@
 # Pycharm IDEA
 .idea/
 *.iml
+# Video files
+*.mp4
