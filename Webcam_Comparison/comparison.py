@@ -3,7 +3,10 @@ import cv2
 import numpy as np
 import csv
 from Webcam_Event_Conversion.webcam_to_event_Log import PseudoEventCamera
+from Webcam_Event_Conversion.webcam_to_event_Log2 import PseudoEventCamera2
+from Webcam_Event_Conversion.webcam_to_event_Log3 import PseudoEventCamera3
 from Webcam_Event_Conversion.webcam_to_event_NoLog import PseudoEventCameraNL
+from Webcam_Event_Conversion.webcam_to_event_NoLog2 import PseudoEventCameraNL2
 
 THRESHOLD_NL = 30
 THRESHOLD = 0.2
@@ -56,12 +59,24 @@ with open(file, "w", newline="") as f:
         print("Sub1",i)
         run_comparison(PseudoEventCameraNL(THRESHOLD_NL), "Sub1")
 
-    # log lookup: np array of log values, logs are considered because log responds to relative change (contrast), and contrast belongs to the object, not the lighting.
-
+    # Log lookup: np array of log values, logs are considered because log responds to relative change (contrast), and contrast belongs to the object, not the lighting.
     for i in range(5):
         print("Log1", i)
         run_comparison(PseudoEventCamera(THRESHOLD), "Log1")
 
+    #No log, pure subtraction uint8
+    for i in range(5):
+        print("Sub2", i)
+        run_comparison(PseudoEventCameraNL2(THRESHOLD_NL), "Sub2")
 
+    # log uint8 lookup
+    for i in range(5):
+        print("Log2", i)
+        run_comparison(PseudoEventCamera2(THRESHOLD), "Log2")
+
+    # log 2D boolean lookup
+    for i in range(5):
+        print("Log3", i)
+        run_comparison(PseudoEventCamera3(THRESHOLD), "Log3")
 
 print("done")
