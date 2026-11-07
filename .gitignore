@@ -11,3 +11,21 @@
 # Pycharm IDEA
 .idea/
 *.iml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Recordings and event data (large, and may contain faces)
+*.mp4
+*.avi
+*.mov
+*.npy
+*.npz
+
+# OS files
+Thumbs.db
+desktop.ini
+.DS_Store
