@@ -5,7 +5,7 @@ def rounded_average(l):
 
 results_per_method = {}
 
-with open("results.csv", "r") as f:
+with open("mp4_results.csv", "r") as f:
     f.readline()        # Skip first line
 
     for line in f:
