@@ -1,0 +1,26 @@
+Method,Threshold,Resolution,frames,Average time per frame,FPS captured,Unprocessed stream displayed,Processed stream displayed
+Subtraction 1,30,"(480, 640)",500,0.01,94218.75,False,True
+Subtraction 1,30,"(480, 640)",500,0.01,105355.52,False,True
+Subtraction 1,30,"(480, 640)",500,0.01,99609.96,False,True
+Subtraction 1,30,"(480, 640)",500,0.01,100302.24,False,True
+Subtraction 1,30,"(480, 640)",500,0.01,100723.92,False,True
+Log 1,0.2,"(480, 640)",500,0.01,70275.2,False,True
+Log 1,0.2,"(480, 640)",500,0.01,69722.47,False,True
+Log 1,0.2,"(480, 640)",500,0.01,71812.55,False,True
+Log 1,0.2,"(480, 640)",500,0.01,71825.27,False,True
+Log 1,0.2,"(480, 640)",500,0.01,70733.92,False,True
+Subtraction 2,30,"(480, 640)",500,0.01,98961.53,False,True
+Subtraction 2,30,"(480, 640)",500,0.01,100475.81,False,True
+Subtraction 2,30,"(480, 640)",500,0.01,102606.94,False,True
+Subtraction 2,30,"(480, 640)",500,0.01,98139.95,False,True
+Subtraction 2,30,"(480, 640)",500,0.01,98188.82,False,True
+Log 2,0.2,"(480, 640)",500,0.02,64928.56,False,True
+Log 2,0.2,"(480, 640)",500,0.02,66331.74,False,True
+Log 2,0.2,"(480, 640)",500,0.02,66199.94,False,True
+Log 2,0.2,"(480, 640)",500,0.01,67508.87,False,True
+Log 2,0.2,"(480, 640)",500,0.01,67582.55,False,True
+Log 3,0.2,"(480, 640)",500,0.02,52864.91,False,True
+Log 3,0.2,"(480, 640)",500,0.02,54688.92,False,True
+Log 3,0.2,"(480, 640)",500,0.02,54658.33,False,True
+Log 3,0.2,"(480, 640)",500,0.02,52682.33,False,True
+Log 3,0.2,"(480, 640)",500,0.02,51883.81,False,True
