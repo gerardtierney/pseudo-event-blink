@@ -21,7 +21,7 @@ FRAMEWIDTH = 640
 FRAMEHEIGHT = 480
 
 
-FRAMES_PER_TEST = 120
+FRAMES_PER_TEST = 500
 
 
 picam2 = Picamera2()
@@ -79,7 +79,7 @@ def run_comparison(camera, method_name):
     elapsed = time.perf_counter() - start_time
     cv2.destroyAllWindows()
 
-    avg_ms = elapsed / frame_count
+    avg_ms = elapsed * 1000 / frame_count
 
     writer.writerow([method_name, camera.threshold, brightness_data.shape, frame_count, round(avg_ms, 2), round((1000 / avg_ms), 2), SHOW_UNPROCESSED, SHOW_EVENTS])
 
