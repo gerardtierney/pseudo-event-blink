@@ -1,12 +1,8 @@
-import cv2
 import numpy as np
-import time
-
-THRESHOLD = 0.2
 
 
 class PseudoEventCamera:
-    def __init__(self, threshold):
+    def __init__(self, threshold = 0.2):
         self.threshold = threshold
         self.ref = None
         self.log_lookup = np.log(np.arange(256, dtype=np.float32) + 1)

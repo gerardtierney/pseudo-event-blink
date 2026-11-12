@@ -2,38 +2,18 @@ import cv2
 import numpy as np
 import time
 
-THRESHOLD = 30
+from Event_Conversion.conversion_log_1 import PseudoEventCamera
 
-
-
-class PseudoEventCameraNL:
-    def __init__(self, threshold):
-        self.threshold = threshold
-        self.ref = None
-
-
-
-    def step(self, greyscale_frame):
-        brightness = np.int16(greyscale_frame)
-
-        if self.ref is None:
-            self.ref = brightness.copy()
-            return np.zeros_like(greyscale_frame, bool), np.zeros_like(greyscale_frame, bool)
-
-        change = brightness - self.ref      # Vectorization
-
-        on = change >= self.threshold
-        off = change <= -self.threshold
-
-        fired = on | off                    # Map showing which pixels fired, to update values
-        self.ref[fired] = brightness[fired]
-
-        return on, off
+THRESHOLD = None # Leave as None for default values
 
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
-    camera = PseudoEventCameraNL(THRESHOLD)
+
+    if THRESHOLD is not None:
+        camera = PseudoEventCamera(THRESHOLD)
+    else:
+        camera = PseudoEventCamera()
 
     start_time = time.perf_counter()
     frame_count = 0
@@ -92,7 +72,7 @@ if __name__ == "__main__":
     cv2.destroyAllWindows()
 
 
-    print(f"Subtraction threshold: {THRESHOLD}")
+    print(f"Threshold: {camera.threshold}")
     print(f"Webcam quality: {greyscale_frame.shape}")
     print(f"Frames processed: {frame_count}")
     print(f"Average total time per frame: {avg_ms:.2f} ms") # Slowed by webcam fps

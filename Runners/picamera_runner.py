@@ -3,39 +3,17 @@ import cv2
 from picamera2 import Picamera2
 import numpy as np
 
+from Event_Conversion.conversion_log_1 import PseudoEventCamera
+
+THRESHOLD = None # Leave as None for default values
+
 # Event camera code from webcam
-THRESHOLD = 0.2
 SHOW_UNPROCESSED = False
 FRAMERATE = 30
 FRAMEDURATION = 1000000 // FRAMERATE
 EXPOSURE = min(round(FRAMEDURATION * 0.9), 20000) # 20ms unless framerate is faster, then open 90% of frame
 FRAMEWIDTH = 640
 FRAMEHEIGHT = 480
-
-class PseudoEventCamera:
-    def __init__(self, threshold):
-        self.threshold = threshold
-        self.ref = None
-        self.log_lookup = np.log(np.arange(256, dtype=np.float32) + 1)
-
-
-    def step(self, greyscale_frame):
-        brightness = self.log_lookup[greyscale_frame]
-
-        if self.ref is None:
-            self.ref = brightness.copy()
-            return np.zeros_like(greyscale_frame, bool), np.zeros_like(greyscale_frame, bool)
-
-        change = brightness - self.ref      # Vectorization
-
-        on = change >= self.threshold
-        off = change <= -self.threshold
-
-        fired = on | off                    # Map showing which frames changed, to update values
-        self.ref[fired] = brightness[fired]
-
-        return on, off
-
 
 if __name__ == "__main__":
 
@@ -57,7 +35,11 @@ if __name__ == "__main__":
     })
 
     picam2.start()
-    camera = PseudoEventCamera(THRESHOLD)
+
+    if THRESHOLD is not None:
+        camera = PseudoEventCamera(THRESHOLD)
+    else:
+        camera = PseudoEventCamera()
 
     frame_count = 0
     start_time = time.time()
