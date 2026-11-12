@@ -1,4 +1,8 @@
-from Webcam_Event_Conversion.webcam_to_event_NoLog import *
+import cv2
+import numpy as np
+import time
+
+from Event_Conversion.conversion_subtraction_1 import PseudoEventCamera
 
 THRESHOLD_NL = 5
 TILE_THRESHOLD = 0.15
@@ -6,7 +10,7 @@ GRID = 60
 MAX_FRAMES = 12
 
 cap = cv2.VideoCapture(r'C:\Users\gerar\OneDrive - National University of Ireland, Galway\Pictures\Camera Roll\EventComparisonFile.mp4')
-camera = PseudoEventCameraNL(THRESHOLD_NL)
+camera = PseudoEventCamera(THRESHOLD_NL)
 frameCounter = 0
 potentialCoodinates = []
 
