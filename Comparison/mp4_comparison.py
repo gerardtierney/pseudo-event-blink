@@ -2,11 +2,11 @@ import time
 import cv2
 import numpy as np
 import csv
-from Webcam_Event_Conversion.webcam_to_event_Log import PseudoEventCamera
-from Webcam_Event_Conversion.webcam_to_event_Log2 import PseudoEventCamera2
-from Webcam_Event_Conversion.webcam_to_event_Log3 import PseudoEventCamera3
-from Webcam_Event_Conversion.webcam_to_event_NoLog import PseudoEventCameraNL
-from Webcam_Event_Conversion.webcam_to_event_NoLog2 import PseudoEventCameraNL2
+from Event_Conversion.conversion_log_1 import PseudoEventCamera
+from Event_Conversion.conversion_log_2 import PseudoEventCamera2
+from Event_Conversion.conversion_log_3 import PseudoEventCamera3
+from Runners.webcam_runner import PseudoEventCameraNL
+from Event_Conversion.conversion_subtraction_2 import PseudoEventCameraNL2
 
 THRESHOLD_NL = 30
 THRESHOLD = 0.2
@@ -49,7 +49,7 @@ def run_comparison(camera, method_name):
 
 
 
-file = "results.csv"
+file = "mp4_results.csv"
 with open(file, "w", newline="") as f:
     writer = csv.writer(f)
     writer.writerow(["Method", "Threshold","Resolution", "frame", "Average total time per frame", "Average frame conversion", "Theoretical fps"])
