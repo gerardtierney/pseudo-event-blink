@@ -19,8 +19,11 @@ The Picamera files also need picamera2, which comes with Raspberry Pi OS.
 
 Runs on a laptop webcam.
 
-- webcam_to_event_Log.py - log version
-- webcam_to_event_NoLog.py - subtraction version
+- webcam_to_event_Log.py - basic log version
+- webcam_to_event_Log2.py - lookup-table log version
+- webcam_to_event_Log3.py - 2D lookup log version
+- webcam_to_event_NoLog.py - basic subtraction version
+- webcam_to_event_NoLog2.py - 8-bit subtraction version
 
 To use: run the file. Two windows open, the normal webcam and the events.
 Press q (with one of the windows clicked) to stop.
@@ -32,16 +35,21 @@ To change the threshold, edit THRESHOLD at the top of the file.
 If you have more than one camera, change the 0 in cv2.VideoCapture(0).
 
 The classes in these files can be imported into other files without
-starting the webcam:
+starting the webcam. 
+These are used to test and compare different event-generation algorithms 
+before they are added to the Raspberry Pi implementations:
 
     from Webcam_Event_Conversion.webcam_to_event_Log import PseudoEventCamera
+    from Webcam_Event_Conversion.webcam_to_event_Log2 import PseudoEventCamera2
+    from Webcam_Event_Conversion.webcam_to_event_Log3 import PseudoEventCamera3
     from Webcam_Event_Conversion.webcam_to_event_NoLog import PseudoEventCameraNL
+    from Webcam_Event_Conversion.webcam_to_event_NoLog2 import PseudoEventCameraNL2
 
 ## Webcam_Comparison
 
-- comparison.py - times the two methods on the same video
+- comparison.py - times the currently designed methods on the same video
 
-To use: set the video path in the cv2.VideoCapture(...) lines, then run it.
+To use: save a video as "EventComparisonFile.mp4" in the "Webcam_Comparison" directory, then run it.
 It runs 5 times for each method, prints "done" when finished, and saves the
 timings to results.csv. results.csv gets wiped and rewritten every run.
 
