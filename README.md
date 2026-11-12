@@ -5,7 +5,7 @@ ON events (pixel got brighter) show as red, OFF events (pixel got darker) show a
 
 There are two ways of making events in here:
 - Log: compares the log of the brightness, threshold is 0.2 (about a 22% change)
-- Subtraction (NoLog): compares the raw brightness, threshold is in grey levels (30 by default)
+- Subtraction: compares the raw brightness, threshold is in grey levels (30 by default)
 
 ## Setup
 
@@ -13,17 +13,41 @@ Needs Python with opencv and numpy:
 
     pip install opencv-python numpy
 
-The Picamera files also need picamera2, which comes with Raspberry Pi OS.
+The Pi runner also needs picamera2, which comes with Raspberry Pi OS.
 
-## Webcam_Event_Conversion
+## Event_Conversion
+
+The converters. Each file has one class called PseudoEventCamera with a
+step() function that takes a greyscale frame and returns the ON and OFF events.
+
+- conversion_log_1.py - basic log version (default threshold 0.2)
+- conversion_log_2.py - lookup-table log version (default threshold 0.2)
+- conversion_log_3.py - 2D lookup log version (default threshold 0.2)
+- conversion_subtraction_1.py - basic subtraction version (default threshold 30)
+- conversion_subtraction_2.py - 8-bit subtraction version (default threshold 30)
+
+These files don't open a camera on their own, they're imported by the runners
+and the comparison. Since every class has the same name, swapping method is
+just changing the import:
+
+    from Event_Conversion.conversion_log_1 import PseudoEventCamera
+    from Event_Conversion.conversion_subtraction_1 import PseudoEventCamera
+
+To use more than one in the same file, rename them on import:
+
+    from Event_Conversion.conversion_log_2 import PseudoEventCamera as PseudoEventCamera2
+
+## Runners
+
+Runs a converter live on a camera. Both use conversion_log_1 by default,
+change the import at the top to use a different method.
+
+To change the threshold, edit THRESHOLD at the top of the file.
+Leave it as None to use the converter's default.
+
+### webcam_runner.py
 
 Runs on a laptop webcam.
-
-- webcam_to_event_Log.py - basic log version
-- webcam_to_event_Log2.py - lookup-table log version
-- webcam_to_event_Log3.py - 2D lookup log version
-- webcam_to_event_NoLog.py - basic subtraction version
-- webcam_to_event_NoLog2.py - 8-bit subtraction version
 
 To use: run the file. Two windows open, the normal webcam and the events.
 Press q (with one of the windows clicked) to stop.
@@ -31,51 +55,36 @@ Press q (with one of the windows clicked) to stop.
 When it stops it prints the threshold, resolution, number of frames,
 average time per frame and average conversion time.
 
-To change the threshold, edit THRESHOLD at the top of the file.
 If you have more than one camera, change the 0 in cv2.VideoCapture(0).
 
-The classes in these files can be imported into other files without
-starting the webcam. 
-These are used to test and compare different event-generation algorithms 
-before they are added to the Raspberry Pi implementations:
-
-    from Webcam_Event_Conversion.webcam_to_event_Log import PseudoEventCamera
-    from Webcam_Event_Conversion.webcam_to_event_Log2 import PseudoEventCamera2
-    from Webcam_Event_Conversion.webcam_to_event_Log3 import PseudoEventCamera3
-    from Webcam_Event_Conversion.webcam_to_event_NoLog import PseudoEventCameraNL
-    from Webcam_Event_Conversion.webcam_to_event_NoLog2 import PseudoEventCameraNL2
-
-## Webcam_Comparison
-
-- comparison.py - times the currently designed methods on the same video
-
-To use: save a video as "EventComparisonFile.mp4" in the "Webcam_Comparison" directory, then run it.
-It runs 5 times for each method, prints "done" when finished, and saves the
-timings to results.csv. results.csv gets wiped and rewritten every run.
-
-Close results.csv in Excel before running or it won't be able to write to it.
-
-It imports from Webcam_Event_Conversion, so run it from PyCharm or from the
-project folder:
-
-    python -m Webcam_Comparison.comparison
-
-## Picamera_Event_Conversion
+### picamera_runner.py
 
 Runs on the Raspberry Pi with the Pi camera.
-
-- picamera_conversion.py - log version
-- picamera_subtraction_conversion.py - subtraction version
 
 To use: run the file on the Pi (needs the Pi desktop or a screen, since it
 opens a window). Press q in the Events window or Ctrl+C in the terminal to stop.
 It prints the fps every second or so while running.
 
 Settings at the top of the file:
-- THRESHOLD - event threshold
+- THRESHOLD - event threshold (None for default)
 - FRAMERATE - camera fps (30 by default)
 - FRAMEWIDTH, FRAMEHEIGHT - resolution (640x480 by default)
 - SHOW_UNPROCESSED - set to True to also show the normal camera feed
 
 Exposure and white balance are locked so the camera doesn't change brightness
 on its own (that would cause fake events).
+
+## Comparison
+
+- mp4_comparison.py - times every conversion method on the same video
+- mp4_comparison_summary.py - averages the results for each method
+
+To use: save a video as "EventComparisonFile.mp4" in the "Comparison"
+directory, then run mp4_comparison.py from PyCharm.
+It runs 5 times for each method, prints "done" when finished, and saves the
+timings to mp4_results.csv. mp4_results.csv gets wiped and rewritten every run.
+
+Then run mp4_comparison_summary.py to print the average total time per frame,
+average conversion time and theoretical fps for each method.
+
+Close mp4_results.csv in Excel before running or it won't be able to write to it.
