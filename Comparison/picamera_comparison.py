@@ -47,23 +47,34 @@ picam2.start()
 def run_comparison(camera, method_name):
     full_frame = picam2.capture_array("main") # Ensure first frame doesnt cause delays
     brightness_data = full_frame[:FRAMEHEIGHT, :]
+    total_capture_time = 0
+    total_conversion_time = 0
+    total_display_time = 0
+    total_time = 0
 
     on, off = camera.step(brightness_data)
 
     frame_count = 0
-    start_time = time.perf_counter()
 
     while frame_count < FRAMES_PER_TEST:
+        frame_start_time = time.perf_counter()
         full_frame = picam2.capture_array("main")
         brightness_data = full_frame[:FRAMEHEIGHT, :]
 
+        timestamp1 = time.perf_counter() - frame_start_time # Capture done
+        total_capture_time += timestamp1
+
         on, off = camera.step(brightness_data)
+
+        timestamp2 = time.perf_counter() - frame_start_time # Conversion done
+        total_conversion_time += timestamp2 - timestamp1
 
         events = np.zeros((*brightness_data.shape, 3), dtype=np.uint8)
         events[on] = (0, 0, 255)
         events[off] = (255, 0, 0)
 
-        frame_count += 1
+
+
 
         if SHOW_UNPROCESSED:
             bgr_frame = cv2.cvtColor(full_frame, cv2.COLOR_YUV2BGR_I420)
@@ -76,12 +87,21 @@ def run_comparison(camera, method_name):
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
-    elapsed = time.perf_counter() - start_time
+        timestamp3 = time.perf_counter() - frame_start_time # Conversion done
+        total_display_time += timestamp3 - timestamp2
+        total_time += timestamp3
+
+        frame_count += 1
+
+    avg_capture_time = total_capture_time * 1000 / frame_count
+    avg_conversion_time = total_conversion_time * 1000 / frame_count
+    avg_display_time = total_display_time * 1000 / frame_count
+    avg_time = total_time * 1000 / frame_count
+
     cv2.destroyAllWindows()
 
-    avg_ms = elapsed * 1000 / frame_count
 
-    writer.writerow([method_name, camera.threshold, brightness_data.shape, frame_count, round(avg_ms, 2), round((1000 / avg_ms), 2), SHOW_UNPROCESSED, SHOW_EVENTS])
+    writer.writerow([method_name, camera.threshold, brightness_data.shape, frame_count, round(avg_capture_time, 2), round(avg_conversion_time, 2), round(avg_display_time, 2), round(avg_time, 2), round((1000 / avg_time), 2), SHOW_UNPROCESSED, SHOW_EVENTS])
 
 
 
@@ -90,7 +110,7 @@ file = "picamera_results.csv"
 try:
     with open(file, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["Method", "Threshold","Resolution", "frames", "Average time per frame", "FPS captured", "Unprocessed stream displayed", "Processed stream displayed"])
+        writer.writerow(["Method", "Threshold","Resolution", "frames", "Average capture time per frame", "Average conversion time per frame", "Average display time per frame", "Average time per frame", "FPS captured", "Unprocessed stream displayed", "Processed stream displayed"])
 
         #No log, pure subtraction no lookup average time calculator
         for i in range(5):
