@@ -11,6 +11,9 @@ from Event_Conversion.conversion_log_1 import PseudoEventCamera
 
 THRESHOLD = None # Leave as None for default values
 
+# Blink detection: uncomment every line starting with "# BLINK:" to run it
+# BLINK: from Blink_Detection.FaceDetection import blinkLocaterWrapper
+
 # Event camera code from webcam
 SHOW_UNPROCESSED = False
 FRAMERATE = 30
@@ -60,6 +63,10 @@ if __name__ == "__main__":
             events[off] = (255, 0, 0)
 
             frame_count += 1
+
+            # BLINK: if blinkLocaterWrapper(on, off):
+            # BLINK:     print(f"Blink detected at {round(frame_count / FRAMERATE, 1)} s (frame {frame_count})")
+
             if frame_count % FRAMERATE == 0:
                 elapsed = time.time() - start_time
                 print(f"Captured {frame_count} frames. Current operational FPS: {frame_count / elapsed:.2f}")
