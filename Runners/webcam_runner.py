@@ -6,9 +6,15 @@ from Event_Conversion.conversion_log_1 import PseudoEventCamera
 
 THRESHOLD = None # Leave as None for default values
 
+# BLINK: uncomment the lines marked "# BLINK:"  to run blink detection
+# BLINK: from Blink_Detection.FaceDetection import blinkLocaterWrapper
+
+
+
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
+
 
     if THRESHOLD is not None:
         camera = PseudoEventCamera(THRESHOLD)
@@ -19,17 +25,29 @@ if __name__ == "__main__":
     frame_count = 0
     step_elapsed_ms = 0
 
+    # BLINK: fps = cap.get(cv2.CAP_PROP_FPS)  # video file's frame rate, used to turn frame numbers into seconds
+    # BLINK: print(f"FPS: {fps}")
+
     while cap.isOpened():
+        # BLINK: if frame_count / fps > END_SECONDS:
+        # BLINK:     break
         ok, frame = cap.read()
         if not ok:
             break
         t0 = time.perf_counter()
 
         greyscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # BLINK: shrink 1080p video down so GRID = 20 tiles fit the face (size is (width, height))
+        # BLINK: greyscale_frame = cv2.resize(greyscale_frame, (640, 360), interpolation=cv2.INTER_AREA)
 
         # Generate events and measure conversion time
         on, off = camera.step(greyscale_frame)
+        # BLINK: if frame_count == 0:
+        # BLINK:     print(f"Resolution: {greyscale_frame.shape}")
         frame_count += 1
+
+        # BLINK: if blinkLocaterWrapper(on, off):
+        # BLINK:     print(f"Blink detected at {round(frame_count / fps, 1)} s (frame {frame_count})")
 
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000

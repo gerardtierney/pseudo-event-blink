@@ -1,29 +1,48 @@
-import cv2
 import numpy as np
-import time
 
-from Event_Conversion.conversion_subtraction_1 import PseudoEventCamera
 
 THRESHOLD_NL = 5
-TILE_THRESHOLD = 0.15
-GRID = 60
-MAX_FRAMES = 12
+TILE_THRESHOLD = 0.05
+GRID = 20
+MIN_GAP_FRAMES = 2       # closing and opening bursts at least this far apart
+MAX_GAP_FRAMES = 12          # closing and opening bursts at most this far apart
+REFRACTORY_FRAMES = 20   # wait this long after a blink before counting another
 
-cap = cv2.VideoCapture(r'C:\Users\gerar\OneDrive - National University of Ireland, Galway\Pictures\Camera Roll\EventComparisonFile.mp4')
-camera = PseudoEventCamera(THRESHOLD_NL)
+
 frameCounter = 0
 potentialCoodinates = []
+prevBlinks = []
+
+
+#Function used to make sure eye geometries are in range, t states which type of geometry is being checked
+# 'c' = columns of two hot tiles (eye gap), 'r' = rows of two hot tiles (eyes level), 'p' = two bursts in the same place
+def inRange(a,b,t):
+
+    if t == 'c' and b is not None:
+        return 2 <= abs(a - b) <= 5
+
+    elif t == 'r' and b is not None:
+        return abs(a-b) <=1
+
+    elif t == 'p':
+        #(X1,Y1,X2,Y2,Polarity,#Frame)
+
+        # bursts need to be at least 2 frames apart, a real blink can't close and open in the same frame
+        if (abs(a[-1] - b[-1]) >= MIN_GAP_FRAMES):
+
+            if len(prevBlinks) > 0 and  not ((a[-1] + b[-1])/ 2 > prevBlinks[-1][-1] + REFRACTORY_FRAMES):
+                return None
+
+            else :
+                return (abs(a[0] - b[0]) <= 1) and (abs(a[1] - b[1]) <= 1) and (abs(a[2] - b[2]) <= 1) and (
+                        abs(a[3] - b[3]) <= 1)
 
 
 
-def inRange(a,b):
-    # TODO: 2 to 5 apart suits the column gap between two eyes, but rows should be 0 to 1 apart,
-    #       and matching a burst with its opposite burst needs "same place" (0 to 1 apart)
-    return abs(a-b) >=2 and abs(a-b) <=5
 
+    return None
 
-
-
+#candidate tile coodinate generater from a given gridbox
 def blinkSearch(gridbox):
 
     #here we will take the gridbox, then analyse the tiles in it, to search for bursts of opposite polarity events
@@ -31,23 +50,27 @@ def blinkSearch(gridbox):
     # count / GRID**2 = fraction of the tile that fired; argwhere gives (row, column) of every tile over the threshold
     potential_eyes = np.argwhere((gridbox / (GRID**2)) >= TILE_THRESHOLD)
 
-    # TODO: starting at -3 can fake a match with a hot tile near the top-left corner
-    xPrev = -3
-    yPrev = -3
+    # a blink only lights up a few tiles, loads of hot tiles means head movement or lighting, so skip the frame
+    if len(potential_eyes) >=10:
+        return None
 
+
+
+    # compare every hot tile with every other one, first pair at eye spacing wins
+    # (a tile against itself fails since its columns are 0 apart)
+    # TODO: pair can come back as (right eye, left eye), make it always return the left eye first
     for y,x in potential_eyes:
-
-        # TODO: only compares each hot tile with the one just before it in the list, so other pairs are missed
-        if inRange(x,xPrev) and inRange(y,yPrev):
-            return x,y,xPrev,yPrev
-        else:
-            xPrev = x
-            yPrev = y
+            for b,a in potential_eyes:
+                if inRange(x,a,'c') and inRange(y,b,'r'):
+                    return x,y,a,b
 
     return None
 
 
-
+#Takes our ON/OFF True false 2D arrays and turns them into a "gridbox"
+# - The array is first re shaped to allow the .sum() to combine certain values
+# - This is because we are splitting the frame into a grid, then we have the total number of events in that grid
+# - reshape means .sum() will sum in the shape of the tiles
 def frameToGridbox(arr):
 
     boxH,boxW = arr.shape
@@ -58,6 +81,14 @@ def frameToGridbox(arr):
     return gridbox
 
 
+# polarity of the stored burst, None if nothing stored yet
+# (list never holds more than 1 entry when this gets called, so first = last)
+def prevPolarity(array):
+
+    for i in array:
+        return i[4]
+    return None
+
 
 def blinkLocaterWrapper(on,off):
 
@@ -66,7 +97,7 @@ def blinkLocaterWrapper(on,off):
 
     frameCounter +=1
 
-    valid = 1
+
     onBox = frameToGridbox(on)
     offBox = frameToGridbox(off)
 
@@ -74,47 +105,38 @@ def blinkLocaterWrapper(on,off):
     offBlink = blinkSearch(offBox)
 
     if onBlink is not None:
-        onBlink = (*onBlink, frameCounter)
+        onBlink = (*onBlink,1, frameCounter)
     if offBlink is not None:
-        offBlink = (*offBlink, frameCounter)
+        offBlink = (*offBlink,0, frameCounter)
 
-    # TODO: doesn't check ON then OFF order, two bursts of the same polarity would also pair
-    if onBlink and not offBlink:
+    #on/offBlink format is now (X1,Y1,X2,Y2,Polarity,#Frame)
+
+    # a moving eyelid makes ON and OFF in the same frame, so either can be stored,
+    # just never the same polarity twice in a row, so stored bursts always alternate
+    if (onBlink) and prevPolarity(potentialCoodinates) != 1:
         potentialCoodinates.append(onBlink)
-    elif offBlink and not onBlink:
+    elif (offBlink) and prevPolarity(potentialCoodinates) != 0:
         potentialCoodinates.append(offBlink)
 
+    # throw away bursts older than MAX_GAP_FRAMES, too long ago to be the same blink
+    # (loops over a copy so removing doesn't skip entries)
     for entry in list(potentialCoodinates):
-        if (frameCounter - entry[-1]) > MAX_FRAMES:
+        if (frameCounter - entry[-1]) > MAX_GAP_FRAMES:
             potentialCoodinates.remove(entry)
 
     if len(potentialCoodinates) == 2:
-        for i in range(len(potentialCoodinates[0])-1):
-            if not (inRange(potentialCoodinates[0][i],potentialCoodinates[1][i])):
-                valid = 0
 
-        if valid:
-            # TODO: list isn't cleared after a match, so the same blink is reported every frame after
-            return potentialCoodinates
 
-        elif len(potentialCoodinates) >= 1:
+        if inRange(potentialCoodinates[0],potentialCoodinates[1],'p'):
+            # save both bursts as one blink, then clear so the same blink isn't counted again
+            prevBlinks.append((*potentialCoodinates[0],*potentialCoodinates[1]))
+            potentialCoodinates.clear()
+            return prevBlinks[-1]
+
+        else :
+            # no match, drop the older burst and keep the newer one for the next frames
             potentialCoodinates.pop(0)
-
-    # TODO: no minimum gap between the two bursts yet (a real blink needs at least ~2 frames)
 
     return None
 
 
-
-if __name__ == "__main__":
-    while cap.isOpened():
-        ok, frame = cap.read()
-        if not ok:
-            break
-        t0 = time.perf_counter()
-        greyscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        # Generate events and measure conversion time
-        on, off = camera.step(greyscale_frame)
-        deltaTime = time.perf_counter() - t0
-        if blinkLocaterWrapper(on,off):
-            print("Blink detected!")
