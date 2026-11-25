@@ -9,9 +9,10 @@ from Event_Conversion.conversion_log_1 import PseudoEventCamera
 # from Event_Conversion.conversion_subtraction_2 import PseudoEventCamera
 
 THRESHOLD = None # Leave as None for default values
+BLINK_DETECTION = False # True to run blink detection
 
-# Blink detection: uncomment every line starting with "# BLINK:" to run it
-# BLINK: from Blink_Detection.FaceDetection import blinkLocaterWrapper
+if BLINK_DETECTION:
+    from Blink_Detection.FaceDetection import blinkLocaterWrapper
 
 
 if __name__ == "__main__":
@@ -26,8 +27,9 @@ if __name__ == "__main__":
     frame_count = 0
     step_elapsed_ms = 0
 
-    # BLINK: fps = cap.get(cv2.CAP_PROP_FPS) or 30  # used to turn frame numbers into seconds, some webcams report 0 so fall back to 30
-    # BLINK: print(f"FPS: {fps}")
+    if BLINK_DETECTION:
+        fps = cap.get(cv2.CAP_PROP_FPS) or 30  # used to turn frame numbers into seconds, some webcams report 0 so fall back to 30
+        print(f"FPS: {fps}")
 
     while cap.isOpened():
         ok, frame = cap.read()
@@ -41,12 +43,15 @@ if __name__ == "__main__":
 
         # Generate events and measure conversion time
         on, off = camera.step(greyscale_frame)
-        # BLINK: if frame_count == 0:
-        # BLINK:     print(f"Resolution: {greyscale_frame.shape}")
+
+        if BLINK_DETECTION and frame_count == 0:
+            print(f"Resolution: {greyscale_frame.shape}")
+
         frame_count += 1
 
-        # BLINK: if blinkLocaterWrapper(on, off):
-        # BLINK:     print(f"Blink detected at {round(frame_count / fps, 1)} s (frame {frame_count})")
+        if BLINK_DETECTION:
+            if blinkLocaterWrapper(on, off):
+                print(f"Blink detected at {round(frame_count / fps, 1)} s (frame {frame_count})")
 
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000
