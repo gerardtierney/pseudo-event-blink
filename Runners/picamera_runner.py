@@ -14,7 +14,7 @@ THRESHOLD = None # Leave as None for default values
 BLINK_DETECTION = False # True to run blink detection
 
 if BLINK_DETECTION:
-    from Blink_Detection.FaceDetection import blinkLocaterWrapper
+    from Blink_Detection.FaceDetection import BlinkDetector
 
 # Event camera code from webcam
 SHOW_UNPROCESSED = False
@@ -53,6 +53,9 @@ if __name__ == "__main__":
     frame_count = 0
     start_time = time.time()
 
+    if BLINK_DETECTION:
+        detector = BlinkDetector()
+
     try:
         while True:
             full_frame = picam2.capture_array("main")
@@ -67,7 +70,7 @@ if __name__ == "__main__":
             frame_count += 1
 
             if BLINK_DETECTION:
-                if blinkLocaterWrapper(on, off):
+                if detector.blinkLocaterWrapper(on, off):
                     print(f"Blink detected at {round(frame_count / FRAMERATE, 1)} s (frame {frame_count})")
 
             if frame_count % FRAMERATE == 0:

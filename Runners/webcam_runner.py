@@ -3,16 +3,16 @@ import numpy as np
 import time
 
 from Event_Conversion.conversion_log_1 import PseudoEventCamera
-# from Event_Conversion.conversion_log_2 import PseudoEventCamera
-# from Event_Conversion.conversion_log_3 import PseudoEventCamera
-# from Event_Conversion.conversion_subtraction_1 import PseudoEventCamera
-# from Event_Conversion.conversion_subtraction_2 import PseudoEventCamera
+#from Event_Conversion.conversion_log_2 import PseudoEventCamera
+#from Event_Conversion.conversion_log_3 import PseudoEventCamera
+#from Event_Conversion.conversion_subtraction_1 import PseudoEventCamera
+#from Event_Conversion.conversion_subtraction_2 import PseudoEventCamera
 
 THRESHOLD = None # Leave as None for default values
-BLINK_DETECTION = False # True to run blink detection
+BLINK_DETECTION = True # True to run blink detection
 
 if BLINK_DETECTION:
-    from Blink_Detection.FaceDetection import blinkLocaterWrapper
+    from Blink_Detection.FaceDetection import BlinkDetector
 
 
 if __name__ == "__main__":
@@ -26,12 +26,18 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
     frame_count = 0
     step_elapsed_ms = 0
+    blinkDisplay = 0 # frames left to show the blink text
 
     if BLINK_DETECTION:
         fps = cap.get(cv2.CAP_PROP_FPS) or 30  # used to turn frame numbers into seconds, some webcams report 0 so fall back to 30
         print(f"FPS: {fps}")
+        detector = BlinkDetector()
+
 
     while cap.isOpened():
+        if blinkDisplay > 0:
+            blinkDisplay  -=1
+
         ok, frame = cap.read()
         if not ok:
             break
@@ -50,7 +56,8 @@ if __name__ == "__main__":
         frame_count += 1
 
         if BLINK_DETECTION:
-            if blinkLocaterWrapper(on, off):
+            if detector.blinkLocaterWrapper(on, off):
+                blinkDisplay = 30
                 print(f"Blink detected at {round(frame_count / fps, 1)} s (frame {frame_count})")
 
 
@@ -83,6 +90,16 @@ if __name__ == "__main__":
             (255, 255, 255),
             1
         )
+        if BLINK_DETECTION and blinkDisplay:
+            cv2.putText(
+                events,
+                f"Blink detected at {round(frame_count / fps, 1)} s (frame {frame_count})",
+                (10, 85),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (255, 255, 255),
+                1
+            )
 
         cv2.imshow("Webcam", frame)
         cv2.imshow("Events", events)
