@@ -8,7 +8,7 @@ class BlinkDetector:
         self.MAX_GAP_FRAMES = MAX_GAP_FRAMES  # closing and opening bursts at most this far apart
         self.REFRACTORY_FRAMES = REFRACTORY_FRAMES # wait this long after a blink before counting another
         self.frameCounter = 0
-        self.potentialCoodinates = []
+        self.potentialCoordinates = []
         self.prevBlinks = []
         self.onRef = None
         self.offRef = None
@@ -57,7 +57,7 @@ class BlinkDetector:
 
 
 
-    # candidate tile coodinate generater from a given gridbox
+    # candidate tile coordinate generater from a given gridbox
     def blinkSearch(self,gridbox,ref):
         # here we will take the gridbox, then analyse the tiles in it, to search for bursts of opposite polarity events
 
@@ -120,28 +120,28 @@ class BlinkDetector:
 
         # a moving eyelid makes ON and OFF in the same frame, so either can be stored,
         # just never the same polarity twice in a row, so stored bursts always alternate
-        if (onBlink) and self.prevPolarity(self.potentialCoodinates) != 1:
-            self.potentialCoodinates.append(onBlink)
-        elif (offBlink) and self.prevPolarity(self.potentialCoodinates) != 0:
-            self.potentialCoodinates.append(offBlink)
+        if (onBlink) and self.prevPolarity(self.potentialCoordinates) != 1:
+            self.potentialCoordinates.append(onBlink)
+        elif (offBlink) and self.prevPolarity(self.potentialCoordinates) != 0:
+            self.potentialCoordinates.append(offBlink)
 
         # throw away bursts older than MAX_GAP_FRAMES, too long ago to be the same blink
         # (loops over a copy so removing doesn't skip entries)
-        for entry in list(self.potentialCoodinates):
+        for entry in list(self.potentialCoordinates):
             if (self.frameCounter - entry[-1]) > self.MAX_GAP_FRAMES:
-                self.potentialCoodinates.remove(entry)
+                self.potentialCoordinates.remove(entry)
 
-        if len(self.potentialCoodinates) == 2:
+        if len(self.potentialCoordinates) == 2:
 
-            if self.inRange(self.potentialCoodinates[0], self.potentialCoodinates[1], 'p'):
+            if self.inRange(self.potentialCoordinates[0], self.potentialCoordinates[1], 'p'):
                 # save both bursts as one blink, then clear so the same blink isn't counted again
-                self.prevBlinks.append((*self.potentialCoodinates[0], *self.potentialCoodinates[1]))
-                self.potentialCoodinates.clear()
+                self.prevBlinks.append((*self.potentialCoordinates[0], *self.potentialCoordinates[1]))
+                self.potentialCoordinates.clear()
                 return self.prevBlinks[-1]
 
             else:
                 # no match, drop the older burst and keep the newer one for the next frames
-                self.potentialCoodinates.pop(0)
+                self.potentialCoordinates.pop(0)
 
         return None
 

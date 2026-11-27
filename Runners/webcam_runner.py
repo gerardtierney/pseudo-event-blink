@@ -27,6 +27,8 @@ if __name__ == "__main__":
     frame_count = 0
     step_elapsed_ms = 0
     blinkDisplay = 0 # frames left to show the blink text
+    prev_blink_time = 0
+    prev_blink_frame = 0
 
     if BLINK_DETECTION:
         fps = cap.get(cv2.CAP_PROP_FPS) or 30  # used to turn frame numbers into seconds, some webcams report 0 so fall back to 30
@@ -58,7 +60,9 @@ if __name__ == "__main__":
         if BLINK_DETECTION:
             if detector.blinkLocaterWrapper(on, off):
                 blinkDisplay = 30
-                print(f"Blink detected at {round(frame_count / fps, 1)} s (frame {frame_count})")
+                prev_blink_time = round(frame_count / fps, 1)
+                prev_blink_frame = frame_count
+                print(f"Blink detected at {prev_blink_time} s (frame {prev_blink_frame})")
 
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000
@@ -93,7 +97,7 @@ if __name__ == "__main__":
         if BLINK_DETECTION and blinkDisplay:
             cv2.putText(
                 events,
-                f"Blink detected at {round(frame_count / fps, 1)} s (frame {frame_count})",
+                f"Blink detected at {prev_blink_time} s (frame {prev_blink_frame})",
                 (10, 85),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.6,
